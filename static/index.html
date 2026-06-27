@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hlídač deště · Litoměřice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F3F6F8;
+    --surface: #FFFFFF;
+    --ink: #16232E;
+    --muted: #5B6B79;
+    --border: #DCE4E9;
+    --rain: #C2410C;
+    --rain-soft: #FDE9DD;
+    --dry: #0F766E;
+    --dry-soft: #DCF3EF;
+    --accent: #2563EB;
+    --accent-soft: #E1EAFC;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 28px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  /* --- Hero: stav deště, hlavní účel téhle stránky --- */
+  .hero {
+    text-align: center;
+    padding: 36px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    inset: -40% -10% auto -10%;
+    height: 220px;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.35;
+    transition: background 0.4s ease;
+  }
+
+  .hero-status {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 44px;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-status.is-wet { color: var(--rain); }
+  .hero-status.is-dry { color: var(--dry); }
+
+  .hero-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin: 10px 0 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 14px;
+  }
+
+  .forecast-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    font-size: 14px;
+  }
+
+  .forecast-row + .forecast-row { margin-top: 4px; }
+
+  .forecast-row.is-likely-rain {
+    background: var(--rain-soft);
+    border-left-color: var(--rain);
+  }
+
+  .forecast-time { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 110px; }
+  .forecast-desc { flex: 1; padding: 0 12px; }
+  .forecast-pop { font-family: 'JetBrains Mono', monospace; font-weight: 600; min-width: 48px; text-align: right; }
+
+  button {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  button:hover { opacity: 0.85; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-admin { background: var(--ink); color: white; }
+
+  .summary-text {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-top: 14px;
+    white-space: pre-wrap;
+  }
+
+  .field-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+
+  input[type="password"], input[type="text"] {
+    flex: 1;
+    min-width: 160px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  label {
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .field { flex: 1; min-width: 160px; }
+
+  .msg { font-size: 13px; margin-top: 10px; }
+  .msg.error { color: var(--rain); }
+  .msg.ok { color: var(--dry); }
+
+  details summary {
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 4px 0;
+  }
+
+  .stats-table { width: 100%; font-size: 13px; margin-top: 12px; border-collapse: collapse; }
+  .stats-table th, .stats-table td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-glow { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <p class="eyebrow">Weather pipeline · Litoměřice</p>
+  <h1>Hlídač deště</h1>
+
+  <div class="card hero">
+    <div class="hero-glow" id="heroGlow"></div>
+    <p class="hero-status" id="heroStatus">—</p>
+    <p class="hero-detail" id="heroDetail">načítám…</p>
+    <p class="hero-meta" id="heroMeta"></p>
+  </div>
+
+  <div class="card">
+    <h2>Nejbližší hodiny</h2>
+    <div id="forecastList">Načítám předpověď…</div>
+  </div>
+
+  <div class="card">
+    <h2>AI shrnutí a doporučení</h2>
+    <button class="btn-primary" id="summaryBtn">Vygenerovat shrnutí</button>
+    <div class="summary-text" id="summaryText"></div>
+    <div class="msg" id="summaryMsg"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>Administrace</summary>
+      <div style="margin-top: 16px;">
+        <div class="field-row">
+          <div class="field">
+            <label for="readKey">Read API klíč</label>
+            <input type="password" id="readKey" placeholder="X-API-Key (read)">
+          </div>
+          <div class="field">
+            <label for="adminKey">Admin API klíč</label>
+            <input type="password" id="adminKey" placeholder="X-API-Key (admin)">
+          </div>
+        </div>
+        <div class="field-row">
+          <button class="btn-primary" id="saveKeysBtn">Uložit klíče v tomto prohlížeči</button>
+          <button class="btn-admin" id="refreshBtn">Stáhnout nová data teď</button>
+          <button class="btn-admin" id="statsBtn">Zobrazit statistiky</button>
+        </div>
+        <div class="msg" id="adminMsg"></div>
+        <table class="stats-table" id="statsTable" style="display:none;"></table>
+      </div>
+    </details>
+  </div>
+
+</div>
+
+<script>
+// Klíče se ukládají jen lokálně v tomto prohlížeči (localStorage) -
+// nikdy se neposílají nikam jinam než na tenhle vlastní server.
+const readKeyInput = document.getElementById('readKey');
+const adminKeyInput = document.getElementById('adminKey');
+readKeyInput.value = localStorage.getItem('weather_read_key') || '';
+adminKeyInput.value = localStorage.getItem('weather_admin_key') || '';
+
+document.getElementById('saveKeysBtn').addEventListener('click', () => {
+  localStorage.setItem('weather_read_key', readKeyInput.value);
+  localStorage.setItem('weather_admin_key', adminKeyInput.value);
+  document.getElementById('adminMsg').textContent = 'Klíče uloženy v tomto prohlížeči.';
+  document.getElementById('adminMsg').className = 'msg ok';
+  loadLatest();
+  loadForecast();
+});
+
+async function apiGet(path, role) {
+  const key = role === 'admin' ? adminKeyInput.value : readKeyInput.value;
+  const res = await fetch(path, { headers: { 'X-API-Key': key } });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+async function apiPost(path, role) {
+  const key = role === 'admin' ? adminKeyInput.value : readKeyInput.value;
+  const res = await fetch(path, { method: 'POST', headers: { 'X-API-Key': key } });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function formatTime(isoOrText) {
+  // forecast_datetime je ve formátu "YYYY-MM-DD HH:MM:SS"
+  const parts = isoOrText.split(' ');
+  return parts.length > 1 ? parts[0].slice(5) + ' ' + parts[1].slice(0, 5) : isoOrText;
+}
+
+async function loadLatest() {
+  const statusEl = document.getElementById('heroStatus');
+  const detailEl = document.getElementById('heroDetail');
+  const metaEl = document.getElementById('heroMeta');
+  const glowEl = document.getElementById('heroGlow');
+  try {
+    const data = await apiGet('/weather/latest', 'read');
+    const isWet = data.rain_last_hour_mm > 0;
+    statusEl.textContent = isWet ? 'PRŠÍ' : 'SUCHO';
+    statusEl.className = 'hero-status ' + (isWet ? 'is-wet' : 'is-dry');
+    detailEl.textContent = `${data.temperature.toFixed(1)}°C · srážky za hodinu: ${data.rain_last_hour_mm} mm · ${data.description}`;
+    glowEl.style.background = isWet
+      ? 'radial-gradient(circle, #C2410C, transparent 70%)'
+      : 'radial-gradient(circle, #0F766E, transparent 70%)';
+    const updated = new Date(data.fetched_at);
+    metaEl.textContent = 'Aktualizováno: ' + updated.toLocaleString('cs-CZ');
+  } catch (err) {
+    statusEl.textContent = '?';
+    statusEl.className = 'hero-status';
+    detailEl.textContent = 'Nepodařilo se načíst data: ' + err.message;
+  }
+}
+
+async function loadForecast() {
+  const listEl = document.getElementById('forecastList');
+  try {
+    const rows = await apiGet('/weather/forecast', 'read');
+    if (!rows.length) {
+      listEl.textContent = 'Zatím není uložena žádná předpověď.';
+      return;
+    }
+    listEl.innerHTML = rows.slice(0, 8).map(r => {
+      const pop = Math.round(r.rain_probability * 100);
+      const likely = pop >= 40;
+      return `<div class="forecast-row ${likely ? 'is-likely-rain' : ''}">
+        <span class="forecast-time">${formatTime(r.forecast_datetime)}</span>
+        <span class="forecast-desc">${r.description}, ${r.temperature.toFixed(1)}°C</span>
+        <span class="forecast-pop">${pop}%</span>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    listEl.textContent = 'Nepodařilo se načíst předpověď: ' + err.message;
+  }
+}
+
+document.getElementById('summaryBtn').addEventListener('click', async () => {
+  const textEl = document.getElementById('summaryText');
+  const msgEl = document.getElementById('summaryMsg');
+  textEl.textContent = '';
+  msgEl.textContent = 'Generuji shrnutí…';
+  msgEl.className = 'msg';
+  try {
+    const data = await apiGet('/weather/summary', 'read');
+    textEl.textContent = data.summary;
+    msgEl.textContent = '';
+  } catch (err) {
+    msgEl.textContent = 'Chyba: ' + err.message;
+    msgEl.className = 'msg error';
+  }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  const msgEl = document.getElementById('adminMsg');
+  msgEl.textContent = 'Stahuji nová data…';
+  msgEl.className = 'msg';
+  try {
+    await apiPost('/weather/refresh', 'admin');
+    msgEl.textContent = 'Data aktualizována.';
+    msgEl.className = 'msg ok';
+    loadLatest();
+    loadForecast();
+  } catch (err) {
+    msgEl.textContent = 'Chyba: ' + err.message;
+    msgEl.className = 'msg error';
+  }
+});
+
+document.getElementById('statsBtn').addEventListener('click', async () => {
+  const tableEl = document.getElementById('statsTable');
+  const msgEl = document.getElementById('adminMsg');
+  try {
+    const data = await apiGet('/stats', 'admin');
+    const rows = Object.entries(data).map(([path, s]) => `
+      <tr><td>${path}</td><td>${s.request_count}</td><td>${s.avg_duration_ms} ms</td><td>${s.errors}</td></tr>
+    `).join('');
+    tableEl.innerHTML = `<tr><th>Endpoint</th><th>Počet</th><th>Ø odezva</th><th>Chyby</th></tr>${rows}`;
+    tableEl.style.display = 'table';
+    msgEl.textContent = '';
+  } catch (err) {
+    msgEl.textContent = 'Chyba: ' + err.message;
+    msgEl.className = 'msg error';
+  }
+});
+
+loadLatest();
+loadForecast();
+</script>
+</body>
+</html>

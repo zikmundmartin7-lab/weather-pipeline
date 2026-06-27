@@ -1,0 +1,47 @@
+name: Weather Data Pipeline
+
+# Spouští se automaticky každou hodinu, nebo manuálně z GitHub UI (tlačítko "Run workflow").
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repozitáře
+        uses: actions/checkout@v4
+
+      - name: Nastavení Pythonu
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalace závislostí
+        run: pip install -r requirements.txt
+
+      - name: Stažení databáze z předchozího běhu (pokud existuje)
+        uses: actions/download-artifact@v4
+        with:
+          name: weather-db
+          path: data
+        continue-on-error: true   # první běh ještě žádný artefakt nemá
+
+      - name: Spuštění pipeline
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          CITY_NAME: Litomerice
+          LATITUDE: "50.5341"
+          LONGITUDE: "14.1310"
+        run: python pipeline.py
+
+      - name: Uložení databáze a logu jako artefakt (perzistence mezi běhy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-db
+          path: |
+            data/weather.db
+            logs/pipeline.log
+          retention-days: 90
+          overwrite: true
