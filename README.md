@@ -37,7 +37,7 @@ všemi moduly napříč diagramem.
 | Integrace nových komponent do existující architektury | Modulární návrh - `ai_assistant.py` a `auth.py` byly přidány bez zásahu do `fetch_weather.py`/`database.py` |
 | Bezpečnost - autentizace, autorizace, logování | `config.py` (.env, API klíče), `auth.py` (role read/admin), `logging` v každém modulu |
 | Monitoring výkonu a optimalizace | Middleware v `api_server.py` měří odezvu každého požadavku, endpoint `/stats` |
-| Analytické myšlení na základě dat | Pravidlové vyhodnocení rizika deště (práh 40 % v dashboardu) + AI shrnutí jako interpretace dat |
+| Analytické myšlení na základě dat | Pravidlové vyhodnocení rizika deště (práh 40 % v dashboardu) + AI shrnutí jako interpretace dat + proaktivní Telegram notifikace (`notify.py`) při změně stavu nebo blížícím se dešti |
 | Iterativní vývoj a release management | `.github/workflows/weather-pipeline.yml` - automatizované pravidelné spouštění, viz sekce Release management níže |
 
 ## Komponenty
@@ -49,6 +49,7 @@ všemi moduly napříč diagramem.
 | `database.py` | SQLite - ukládání a čtení historie a předpovědi |
 | `auth.py` | Role-based autorizace (read/admin) přes API klíče |
 | `ai_assistant.py` | Volání Anthropic API - shrnutí dat do doporučení |
+| `notify.py` | Telegram notifikace při změně stavu deště nebo blížícím se dešti |
 | `api_server.py` | FastAPI - REST rozhraní, monitoring, servíruje dashboard |
 | `pipeline.py` | Samostatný skript pro pravidelné stažení dat (cron/Actions) |
 | `static/index.html` | Webový dashboard |

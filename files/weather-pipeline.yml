@@ -34,6 +34,8 @@ jobs:
       - name: Spuštění pipeline
         env:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CITY_NAME: Litomerice
           LATITUDE: "50.5341"
           LONGITUDE: "14.1310"
